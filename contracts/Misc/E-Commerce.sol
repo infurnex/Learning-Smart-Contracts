@@ -26,30 +26,33 @@ contract Ecommerce{
         (string memory _title,
         string memory _description,
         uint _price)
-        public {
+        public{
             require(_price > 0 , "Price of products has to be greater then 0");
             Product memory tempProduct;
             tempProduct.title = _title;
             tempProduct.description = _description;
             tempProduct.price = _price * 10**18;
-            tempProduct.seller = msg.sender;
+            tempProduct.seller = payable(msg.sender);
             tempProduct.productId = counter;
             products.push(tempProduct);
+
             emit registered(_title,tempProduct.productId, msg.sender);
         }    
         
      // funtion to buy the product
-    function buy(uint _productId) public{
-        require(products[_productId].price > msg.value,"Please pay the exact amount");
+    function buy(uint _productId) public payable {
+        require(products[_productId].price == msg.value,"Please pay the exact amount");
         products[_productId].buyer  = msg.sender;
-        emit bought(_productId);
+        emit bought(_productId, msg.sender);
     }
  
     // function to confirm delivery from buyer
-    function delivery(uint _productId) public {
+    function delivery(uint _productId) public{
         require(products[_productId].buyer == msg.sender, "buyer confirmation only");
         products[_productId].delivered = true;
-        products[_productId].seller.transfer(products[_productId].price);
+        payable(products[_productId].seller).transfer(products[_productId].price);
         emit delivered(_productId);
     } 
 }
+
+//edited
